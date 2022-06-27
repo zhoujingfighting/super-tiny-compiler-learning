@@ -1,0 +1,8 @@
+{
+    "modelDefinition": ".model",
+    "parameterDefinition": ".param",
+    "subcktDefinition":".subckt",
+    "deviceDefinition":"[a-z]\\w+",
+    "netlistEndDefinition":".end",
+    "subcktEndDefinition":".ends"
+}
