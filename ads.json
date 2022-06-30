@@ -1,7 +1,7 @@
 {
     "tokens": {
-        "model": ".model",
-        "parameter": ".param",
+        "model": "model",
+        "parameter": "parameter",
         "subckt": ".subckt",
         "device": "[a-z]\\w+",
         "netlistEnd": ".end",

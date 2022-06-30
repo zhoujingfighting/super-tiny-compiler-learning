@@ -1,8 +1,12 @@
+
 const str = `.model Q2N2222  (NPN Is="14.34f" Xti=3
 + Itf=.6 Vtf=1.7 Xtf=3 Rb=10)
 v1 net-_r2-pad1_ gnd  dc 10
-q1 net-_c3-pad2_ net-_c1-pad2_ net-_c2-pad2_ Q2N2222`;
-interface CustomizedToken {
+q1 net-_c3-pad2_ net-_c1-pad2_ net-_c2-pad2_ Q2N2222
+&454`;
+import { TokenErrorReporter } from './token-error-reporting';
+console.log(TokenErrorReporter);
+export interface CustomizedToken {
     line: number;
     startColumn: number;
     endColumn: number;
@@ -26,7 +30,7 @@ const token = (input: string) => {
     let columnNumber: number = 1;//列号
     let current = 0; //相当于扫描字符串的指针
     let tokens: CustomizedToken[] = [];
-    let errorMessage: string[] = [];// TODO: 自定义一些error massage
+    let tokenErrors: string[] = [];
     while (current < input.length) {
         let char = input[current];
         if (char === ' ' || char === '\t') {
@@ -47,6 +51,18 @@ const token = (input: string) => {
                 endColumn: ++columnNumber,
                 value: '=',
                 type: "equalSymbol"
+            });
+            current++
+            continue;
+        }
+        // FIXME: special treat for ngspice continuous line
+        else if (char === '+') {
+            tokens.push({
+                line: lineNumber,
+                startColumn: columnNumber,
+                endColumn: ++columnNumber,
+                value: '+',
+                type: "continuousSymbol"
             });
             current++
             continue;
@@ -147,7 +163,7 @@ const token = (input: string) => {
             }
 
             //.324f etc number definition
-            else if (/\.\d+/.test(value)) { //这个写的不太好，需要进一步的细分字符类型
+            else if (/\.\d+\w?/.test(value)) { //这个写的不太好，需要进一步的细分字符类型
                 tokens.push({
                     ...basicToken,
                     type: "stringLiteral"
@@ -164,10 +180,10 @@ const token = (input: string) => {
             columnNumber = _endColumnNumber;
         }
 
-        else if (char === '$' || char === ';' || char === '*') { //处理注释的逻辑
+        else if (char === '$' || char === ';' || char === '*') {
             let _endColumnNumber = columnNumber;
             let value = '';
-            while (!/(\r\n|\n)/i.test(char) && char !== undefined) { // FIXME:这里后面需要更加详细的定义
+            while (!/(\r\n|\n)/i.test(char) && char !== undefined) {
                 value += char;
                 char = input[++current];
                 _endColumnNumber++;
@@ -182,10 +198,10 @@ const token = (input: string) => {
             columnNumber = _endColumnNumber;
         }
 
-        else if (/[\w\d\_\-]/.test(char) && char !== undefined) { //处理注释的逻辑
+        else if (/[\w\d\_\-]/.test(char) && char !== undefined) {
             let _endColumnNumber = columnNumber;
             let value = '';
-            while (/[\w\d\_\-\.]/.test(char) && char !== undefined) { // FIXME:这里后面需要更加详细的定义
+            while (/[\w\d\_\-\.]/.test(char) && char !== undefined) {
                 value += char;
                 char = input[++current];
                 _endColumnNumber++;
@@ -199,11 +215,30 @@ const token = (input: string) => {
             })
             columnNumber = _endColumnNumber;
         }
-        else { //这里需要匹配那些没有匹配到的token字符串。并且给它暴露出来
-            current++;
-            columnNumber++;
+        else {
+            let _endColumnNumber = columnNumber;
+            let value = '';
+            while (!/\s/.test(char) && char !== undefined) {
+                value += char;
+                char = input[++current];
+                _endColumnNumber++;
+            }
+            //这里还可以进行进一步的细分：这个属于什么类型的token
+            /**
+             * 1 ： 没有被定义的
+             * 2 ： 其他非法字符集
+             */
+            tokenErrors.push(TokenErrorReporter.unknownWords({
+                line: lineNumber,
+                startColumn: columnNumber,
+                endColumn: _endColumnNumber,
+                value: value,
+                type: 'unknownWords'
+            }))
+            columnNumber = _endColumnNumber;
         }
     }
+    tokenErrors.forEach(item => console.error(item));
     return tokens;
 }
 
