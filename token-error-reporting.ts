@@ -1,4 +1,8 @@
 import { CustomizedToken } from './token';
+
+/**
+ * 需要再仔细定义token error reporter 的类型
+ */
 export namespace TokenErrorReporter {
 
     export function unknownWords(token: CustomizedToken): string {
