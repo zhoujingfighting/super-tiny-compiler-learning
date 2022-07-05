@@ -1,5 +1,5 @@
 #include <vector>
-
+#include <json/json.h>
 typedef struct TestToken
 {
     int line;
@@ -11,16 +11,16 @@ typedef struct TestToken
 
 enum TokenTypes
 {
-    MODEL,
-    SUBCKT,
-    PARAMETR,
-    DEVICE,
-    NETLIST_END,
-    SUBCKT_END,
-    TITLE,
-    QUOTE,
-    LEFT_PARENTHESIS,
-    RIGHT_PARENTHESIS,
+    //def
+    def_model = 1,
+    def_subckt = 2,
+    def_paramter = 3,
+    def_netlist_end = 4,
+    def_subckt_end = 5,
+    def_title = 6,
+    def_quote = 7,
+    def_left_paren = 8,
+    def_right_paren = 9,
 };
 
 enum Simulators {
